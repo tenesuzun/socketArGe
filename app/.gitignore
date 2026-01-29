@@ -1,0 +1,71 @@
+/build
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Android Studio / IntelliJ
+.idea
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Gradle
+.gradle/
+build/
+**/build/
+gradle-app.setting
+# Local Gradle properties (contains machine-specific paths/keys)
+gradle.properties
+# If you want to commit gradle.properties, remove the above line and only ignore local overrides:
+# gradle-local.properties
+
+# Android
+/local.properties
+# NDK / CMake cache
+.externalNativeBuild/
+.cxx/
+
+# Jetpack Compose compiler caches
+compose-compiler/
+
+# Logs
+logs/
+*.log
+
+# Kotlin
+.kotlin/
+
+# Java
+out/
+
+# Generated files
+captures/
+generated/
+
+# Test reports and coverage
+test-results/
+**/test-results/
+**/reports/
+**/jacoco/
+*.ec
+*.exec
+
+# Lint
+lint/
+**/lint-results.*
+
+# Keystores (never commit private signing keys)
+*.jks
+*.keystore
+keystore.properties
+
+# Misc
+node_modules/
+tmp/
+temp/
+.cache/
+
+.server2.js
+/src/main/java/com/tenesuzun/socketarge/server2.js
