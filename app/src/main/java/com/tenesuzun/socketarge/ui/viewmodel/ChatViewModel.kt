@@ -2,17 +2,16 @@ package com.tenesuzun.socketarge.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.tenesuzun.socketarge.data.model.ReceivedNotification
+import com.tenesuzun.socketarge.data.model.ChatMessageUI
 import com.tenesuzun.socketarge.data.websocket.WebSocketManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class NotificationViewModel @Inject constructor(
+class ChatViewModel @Inject constructor(
     private val webSocketManager: WebSocketManager
 ) : ViewModel() {
 
@@ -23,8 +22,8 @@ class NotificationViewModel @Inject constructor(
             initialValue = WebSocketManager.ConnectionState.Disconnected
         )
 
-    val notifications: StateFlow<List<ReceivedNotification>> =
-        webSocketManager.notifications.stateIn(
+    val chatMessages: StateFlow<List<ChatMessageUI>> =
+        webSocketManager.chatMessages.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
@@ -37,26 +36,13 @@ class NotificationViewModel @Inject constructor(
             initialValue = null
         )
 
-    init {
-        connectToServer()
-    }
-
-    fun connectToServer() {
-        viewModelScope.launch {
-            val deviceName = "Android ${android.os.Build.MODEL}"
-            webSocketManager.connect(deviceName)
+    fun sendMessage(message: String) {
+        if (message.isNotBlank()) {
+            webSocketManager.sendMobileBroadcast(message)
         }
     }
 
-    fun disconnect() {
-        webSocketManager.disconnect()
-    }
-
-    fun clearNotifications() {
-        webSocketManager.clearNotifications()
-    }
-
-    fun sendPing() {
-        webSocketManager.sendPing()
+    fun clearMessages() {
+        webSocketManager.clearChatMessages()
     }
 }

@@ -18,10 +18,13 @@ import okhttp3.WebSocketListener
 import java.util.concurrent.TimeUnit
 import com.tenesuzun.socketarge.data.model.*
 import kotlinx.serialization.encodeToString
+import kotlin.collections.plusAssign
+import kotlin.text.get
 
 class WebSocketManager(
 //    private val serverUrl: String = "ws://localhost:8080" // Emulator için
     private val serverUrl: String = "ws://10.16.105.231:8080" // Emulator için
+//    private val serverUrl: String = "ws://10.16.127.255:8080" // ifconfig | grep "inet " | grep -v 127.0.0.1
     // Gerçek cihaz için: "ws://YOUR_COMPUTER_IP:8080"
 ) {
     private val TAG = "WebSocketManager"
@@ -36,6 +39,9 @@ class WebSocketManager(
         isLenient = true
         encodeDefaults = true
     }
+
+    private val _chatMessages = MutableStateFlow<List<ChatMessageUI>>(emptyList())
+    val chatMessages: StateFlow<List<ChatMessageUI>> = _chatMessages.asStateFlow()
 
     private var webSocket: WebSocket? = null
     private val scope = CoroutineScope(Dispatchers.IO + Job())
@@ -124,7 +130,6 @@ class WebSocketManager(
 
     private fun handleIncomingMessage(text: String) {
         try {
-            // First, try to determine message type
             val typeMap = json.decodeFromString<Map<String, String>>(text)
             val type = typeMap["type"]
 
@@ -135,6 +140,20 @@ class WebSocketManager(
                     Log.d(TAG, "Received welcome, Client ID: ${welcome.clientId}")
                 }
 
+                // Server "mobile_broadcast_received" gönderiyor - SADECE BU KALSIN
+                "mobile_broadcast_received" -> {
+                    val broadcast = json.decodeFromString<MobileBroadcastReceived>(text)
+                    val chatMessage = ChatMessageUI(
+                        message = broadcast.message,
+                        from = broadcast.from,
+                        fromId = broadcast.fromId,
+                        timestamp = broadcast.timestamp,
+                        isMine = broadcast.fromId == _clientId.value
+                    )
+                    _chatMessages.value += chatMessage
+                    Log.d(TAG, "Chat message received from ${broadcast.from}: ${broadcast.message}")
+                }
+
                 "notification" -> {
                     val notification = json.decodeFromString<NotificationMessage>(text)
                     val received = ReceivedNotification(
@@ -142,9 +161,7 @@ class WebSocketManager(
                         from = notification.from,
                         timestamp = notification.timestamp
                     )
-
-                    // Add to list
-                    _notifications.value = _notifications.value + received
+                    _notifications.value += received
                     Log.d(TAG, "Notification added: ${notification.message}")
                 }
 
@@ -161,16 +178,28 @@ class WebSocketManager(
         }
     }
 
-    fun sendMessage(message: String) {
-        val chatMessage = ChatMessage(
-            type = "chat",
-            message = message
-        )
-        val jsonString = json.encodeToString(chatMessage)
+
+//    fun sendMessage(message: String) {
+//        val chatMessage = ChatMessage(
+//            type = "chat",
+//            message = message
+//        )
+//        val jsonString = json.encodeToString(chatMessage)
+//        webSocket?.send(jsonString)
+//        Log.d(TAG, "Sent chat: $jsonString")
+//    }
+
+    // Yeni fonksiyon:
+    fun sendMobileBroadcast(message: String) {
+        val broadcastMessage = MobileBroadcastMessage(message = message)
+        val jsonString = json.encodeToString(broadcastMessage)
         webSocket?.send(jsonString)
-        Log.d(TAG, "Sent chat: $jsonString")
+        Log.d(TAG, "Sent mobile broadcast: $jsonString")
     }
 
+    fun clearChatMessages() {
+        _chatMessages.value = emptyList()
+    }
 
     fun sendPing() {
         val pingMessage = PingMessage()

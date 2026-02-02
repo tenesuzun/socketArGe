@@ -22,6 +22,8 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Face
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Refresh
@@ -49,7 +51,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.tenesuzun.socketarge.data.model.ReceivedNotification
 import com.tenesuzun.socketarge.data.websocket.WebSocketManager
 import com.tenesuzun.socketarge.ui.viewmodel.NotificationViewModel
@@ -60,7 +62,9 @@ import java.util.TimeZone
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationScreen(
-    viewModel: NotificationViewModel = viewModel()
+    viewModel: NotificationViewModel = hiltViewModel(),
+    onNavigateToChat: () -> Unit = {},
+    onNavigateToDirectMessage: () -> Unit = {}
 ) {
     val connectionState by viewModel.connectionState.collectAsState()
     val notifications by viewModel.notifications.collectAsState()
@@ -98,6 +102,13 @@ fun NotificationScreen(
                         Icon(Icons.Default.Refresh, "Ping")
                     }
                 }
+            )
+        },
+        bottomBar = {
+            // Navigation butonları ekle
+            NavigationBar(
+                onNavigateToChat = onNavigateToChat,
+                onNavigateToDirectMessage = onNavigateToDirectMessage
             )
         },
         floatingActionButton = {
@@ -151,6 +162,30 @@ fun NotificationScreen(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun NavigationBar(
+    onNavigateToChat: () -> Unit,
+    onNavigateToDirectMessage: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+        Button(onClick = onNavigateToChat) {
+            Icon(Icons.Default.Face, contentDescription = null)
+            Spacer(Modifier.width(8.dp))
+            Text("Chat")
+        }
+        Button(onClick = onNavigateToDirectMessage) {
+            Icon(Icons.Default.Email, contentDescription = null)
+            Spacer(Modifier.width(8.dp))
+            Text("Direct")
         }
     }
 }
@@ -341,7 +376,6 @@ fun NotificationCard(
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
-
                 Text(
                     text = formatTimestamp(notification.timestamp),
                     style = MaterialTheme.typography.labelSmall,
