@@ -23,7 +23,8 @@ import kotlin.text.get
 
 class WebSocketManager(
 //    private val serverUrl: String = "ws://localhost:8080" // Emulator için
-    private val serverUrl: String = "ws://10.16.105.231:8080" // Emulator için
+//    private val serverUrl: String = "ws://10.16.105.231:8080" // Ofis IP
+    private val serverUrl: String = "ws://192.168.1.101:8080" // Ev IP
 //    private val serverUrl: String = "ws://10.16.127.255:8080" // ifconfig | grep "inet " | grep -v 127.0.0.1
     // Gerçek cihaz için: "ws://YOUR_COMPUTER_IP:8080"
 ) {
